@@ -12,7 +12,7 @@ Example usage:
 
 import os, shdom, argparse
 import numpy as np
-
+from joblib import Parallel, delayed
 
 def argument_parsing():
     """
@@ -37,7 +37,7 @@ def argument_parsing():
                         nargs='+',
                         type=np.float32,
                         help='Wavelengths [Micron] for which to compute the polarized mie table' \
-                        'The output file name is formated as: Water_<wavelength[nm]>nm.scat<pol>')
+                        'The output file name is formated as: Water_<wavelength[nm]>nm_pol.scat')
     parser.add_argument('--num_reff',
                         default=50,
                         type=int,
@@ -81,10 +81,10 @@ def argument_parsing():
 def get_file_paths(wavelength, args):
     """TODO"""
     if not os.path.exists(args.mono_dir):
-        os.makedirs(args.mono_path)    
+        os.makedirs(args.mono_dir)    
     if not os.path.exists(args.poly_dir):
-        os.makedirs(args.poly_path)   
-    file_name = 'Water_{:3d}nm.scat'.format(shdom.int_round(wavelength))
+        os.makedirs(args.poly_dir)   
+    file_name = 'Water_{:3d}nm.scat'.format(int(np.round(wavelength*1000)))
     if args.polarized:
         file_name += 'pol'
     mono_path = os.path.join(args.mono_dir, file_name)
