@@ -27,23 +27,6 @@ cluster) using the Message Passing Interface (MPI).
 """
 
 from scipy.interpolate import interp1d, RegularGridInterpolator
-import warnings
-import numpy as np
-
-def float_round(x):
-    """TODO"""
-    if type(x) == np.float32:
-        x = x.item()
-    return round(x,3) 
-
-def int_round(x):
-    """TODO"""
-    return int(np.round(x*1000))
-
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
 
 
 class Grid(object):
@@ -77,18 +60,18 @@ class Grid(object):
     def __init__(self, **kwargs):
         self._type = self.get_grid_type(kwargs)
         
-        if 'bounding_box' in kwargs:
+        if kwargs.has_key('bounding_box'):
             self._bounding_box = kwargs['bounding_box']
         else: 
             self._bounding_box = None
             
         if self.type == '3D':
-            if 'z' in kwargs:
+            if kwargs.has_key('z'):
                 self.z = kwargs['z']
             else:
                 self.z = np.linspace(kwargs['bounding_box'].zmin, kwargs['bounding_box'].zmax, kwargs['nz'])
                 
-            if 'x' in kwargs and 'y' in kwargs:
+            if kwargs.has_key('x') and kwargs.has_key('y'):
                 self.x = kwargs['x']
                 self.y = kwargs['y']
                 self._bounding_box = BoundingBox(self.xmin, self.ymin, self.zmin, self.xmax, self.ymax, self.zmax)
@@ -109,12 +92,12 @@ class Grid(object):
     
     def get_grid_type(self, kwargs):
         """TODO"""
-        if 'x' in kwargs and 'y' in kwargs and 'z' in kwargs or \
-           'nx' in kwargs and 'ny' in kwargs and 'nz' in kwargs and 'bounding_box' in kwargs or \
-           'nx' in kwargs and 'ny' in kwargs and 'z' in kwargs:
+        if kwargs.has_key('x') and kwargs.has_key('y') and kwargs.has_key('z') or \
+           kwargs.has_key('nx') and kwargs.has_key('ny') and kwargs.has_key('nz') and kwargs.has_key('bounding_box') or \
+           kwargs.has_key('nx') and kwargs.has_key('ny') and kwargs.has_key('z'):
             grid_type = '3D'
         
-        elif 'z' in kwargs: 
+        elif kwargs.has_key('z'): 
             grid_type = '1D'
             
         else: 
@@ -262,9 +245,9 @@ class Grid(object):
     
     
     def __eq__(self, other) : 
-        for key, item in self.__dict__.items():
+        for key, item in self.__dict__.iteritems():
             other_item = None
-            if key in other.__dict__:
+            if other.__dict__.has_key(key):
                 other_item = other.__dict__[key]
             if not np.array_equiv(np.nan_to_num(item), np.nan_to_num(other_item)):
                 return False
@@ -585,12 +568,13 @@ class BoundingBox(object):
         return BoundingBox(xmin, ymin, zmin, xmax, ymax, zmax)
 
  
-from shdom.phase import *
-from shdom.medium import *
-from shdom.sensor import *
-from shdom.rte_solver import *
-from shdom.optimize import *
-import shdom.generate as Generate
+from phase import *
+from medium import *
+from sensor import *
+from rte_solver import *
+from optimize import *
+import generate as Generate
+import parameters as Parameters
 
 
 def save_forward_model(directory, medium, solver, measurements):
