@@ -3,8 +3,7 @@ Render: [Multispectral] Radiance at Top of the Atmosphere (TOA)
 ---------------------------------------------------------------
 
 Forward rendering of an atmospheric medium with at multiple spectral bands with an orthographic sensor measuring 
-exitting radiance at the top of the the domain. This sensor is an (somewhat crude) approximation for far observing 
-satellites where the rays are parallel. 
+exitting radiance at the top of the the domain. This sensor is an approximation (somewhat crude) for far observing satellites where the rays are parallel. 
 
 As with all `render` scripts a `generator` needs to be specified using the generator flag (--generator). 
 The Generator defines the medium parameters: Grid, Extinction, Single Scattering Albedo and Phase function with it's own set of command-line flags.
@@ -75,11 +74,6 @@ def argument_parsing():
                         nargs='+',
                         type=np.float32,
                         help='(default value: %(default)s) Wavelengths for the radiance measurements [micron]. len(wavelength)=len(solar_flux)')
-    parser.add_argument('--solar_flux',
-                        default=[1.0],
-                        nargs='+',
-                        type=np.float32,
-                        help='(default value: %(default)s) Solar flux constant for normalization. len(solar_flux)=len(wavelength)') 
     parser.add_argument('--mie_base_path',
                         default='mie_tables/polydisperse/Water_<wavelength>nm.scat',
                         help='(default value: %(default)s) Mie table base file name. ' \
@@ -116,7 +110,6 @@ def argument_parsing():
         
     args = parser.parse_args()
     assert len(args.azimuth) == len(args.zenith), 'Length of azimuth and zenith should be equal'
-    assert len(args.solar_flux) == len(args.wavelength), 'Length of wavelength and solar flux should be equal'
     return args, CloudGenerator, AirGenerator
 
     
@@ -166,13 +159,14 @@ def solve_rte(atmospheres):
         A solver with the muispectral solutions for the RTE
     """
     rte_solvers = shdom.RteSolverArray()
-    for wavelength, solar_flux in zip(args.wavelength, args.solar_flux):
-        numerical_params = shdom.NumericalParameters(
-                split_accuracy=0.1/solar_flux,
-                deltam=False)
+    solar_spectrum = shdom.SolarSpectrum()
+    solar_fluxes = solar_spectrum.get_monochrome_solar_flux(args.wavelength)
+    solar_fluxes = solar_fluxes / max(solar_fluxes)
+    numerical_params = shdom.NumericalParameters(deltam=False)
+    for wavelength, solar_flux in zip(args.wavelength, solar_fluxes):
         scene_params = shdom.SceneParameters(
             wavelength=wavelength,
-            source=shdom.SolarSource(args.solar_azimuth, args.solar_zenith, flux=solar_flux)
+            source=shdom.SolarSource(args.solar_azimuth, args.solar_zenith, solar_flux)
         )
         rte_solver = shdom.RteSolver(scene_params, numerical_params)
         rte_solver.set_medium(atmospheres)

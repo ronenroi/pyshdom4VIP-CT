@@ -19,7 +19,6 @@ For a tutorial overview of how to operate the forward rendering model see the fo
  - notebooks/Multiview Rendering.ipynb
 """
 
-import os 
 import numpy as np
 import argparse
 import shdom
@@ -144,12 +143,11 @@ def solve_rte(atmosphere):
         A solver with the solution for the RTE
     """
     scene_params = shdom.SceneParameters(
-        source=shdom.SolarSource(args.solar_azimuth, args.solar_zenith, flux=3.14),
-        wavelength = atmosphere.wavelength
+        source=shdom.SolarSource(args.solar_azimuth, args.solar_zenith)
     )
     numerical_params = shdom.NumericalParameters()
     rte_solver = shdom.RteSolver(scene_params, numerical_params)
-    rte_solver.init_medium(atmosphere)
+    rte_solver.set_medium(atmosphere)
     rte_solver.solve(maxiter=100) 
     return rte_solver
     
