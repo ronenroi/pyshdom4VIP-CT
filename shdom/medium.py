@@ -35,11 +35,11 @@ class Scatterer(object):
 class OpticalScatterer(Scatterer):
     """
     An OpticalScatterer class defined in terms of the optical quantities for a given wavelength.
-    
+
     Parameters
     ----------
     wavelength: float
-        A wavelength in microns 
+        A wavelength in microns
     extinction: shdom.GridData object
         A GridData object containing the extinction (1/km) on a grid
     albedo: shdom.GridData
@@ -59,12 +59,12 @@ class OpticalScatterer(Scatterer):
     def resample(self, grid):
         """
         The resample method resamples the OpticalScatterer (extinction, albedo, phase).
-        
+
         Parameters
         ----------
         grid: shdom.Grid
             The new grid to which the data will be resampled
-            
+
         Returns
         -------
         scatterer: shdom.OpticalScatterer
@@ -74,7 +74,6 @@ class OpticalScatterer(Scatterer):
         albedo = self.albedo.resample(grid)
         phase = self.phase.resample(grid)            
         return shdom.OpticalScatterer(self.wavelength, extinction, albedo, phase)
-        
 
     def get_mask(self, threshold):
         """
@@ -92,7 +91,6 @@ class OpticalScatterer(Scatterer):
         """
         data = self.extinction.data > threshold
         return shdom.GridData(self.grid, data)
-    
     
     @property
     def wavelength(self):
@@ -130,7 +128,7 @@ class OpticalScatterer(Scatterer):
 class MicrophysicalScatterer(Scatterer):
     """
     A MicrophysicalScatterer class defined in terms of the microphysical quantities.
-    
+
     Parameters
     ----------
     lwc: shdom.GridData
@@ -149,12 +147,11 @@ class MicrophysicalScatterer(Scatterer):
         self._min_veff = np.Inf
         self._max_veff = -np.Inf           
         self.set_microphysics(lwc, reff, veff)
-            
-            
+
     def set_microphysics(self, lwc, reff, veff):
         """
         Set the microphyscal properties and define the scatterer grid.
-        
+
         Parameters
         ----------
         lwc: shdom.GridData
@@ -163,31 +160,30 @@ class MicrophysicalScatterer(Scatterer):
             A GridData object containing effective radii (micron) on a 3D grid.
         veff: shdom.GridPhase
             A GridData object containing effective variances on a 3D grid.
-    
+
         Notes
         -----
-        The scatterer grid contains all three grids of lwc, reff and veff 
+        The scatterer grid contains all three grids of lwc, reff and veff
         (see __add__ method of shdom.Grid for more info)
         """
         self.lwc = lwc
         self.reff = reff
         self.veff = veff
         if (lwc is not None) and (reff is not None) and (veff is not None):
-            self._grid = lwc.grid + reff.grid + veff.grid            
-
+            self._grid = lwc.grid + reff.grid + veff.grid
 
     def get_optical_scatterer(self, wavelength):
         """
         Get the optical scatterer out of the microphysics and Mie scattering model for a given wavelength.
-        
+
         Parameters
         ----------
         wavelength: float of list of floats
             Wavelength in microns. An OpticalScatterer object is returned for an input float and a MultispectralScatterer for a list.
-            
+
         Notes
         -----
-        A Mie scattering model must be defined at the input wavelength by use of the add_mie method. 
+        A Mie scattering model must be defined at the input wavelength by use of the add_mie method.
         The input wavelength is rounded to three decimals.
         """
         if isinstance(wavelength, list):
@@ -207,16 +203,15 @@ class MicrophysicalScatterer(Scatterer):
                 phase=self.mie[float_round(wavelength)].get_phase(self.reff, self.veff))
         return scatterer
     
-    
     def resample(self, grid):
         """
         The resample method resamples the MicrophysicalScatterer in place(lwc, reff, veff).
-        
+
         Parameters
         ----------
         grid: shdom.Grid
             The new grid to which the data will be resampled
-            
+
         Notes
         -----
         Unlike the OpticalScatterer resample method, resampling is done in-place since the Mie structures can be large and are left unchanged.
@@ -225,7 +220,6 @@ class MicrophysicalScatterer(Scatterer):
         reff = self.reff.resample(grid)
         veff = self.veff.resample(grid)            
         self.set_microphysics(lwc, reff, veff)
-    
     
     def get_mask(self, threshold):
         """
@@ -242,13 +236,12 @@ class MicrophysicalScatterer(Scatterer):
             A boolean mask with True for dense voxels and False for thin voxels.
         """
         data = self.lwc.data > threshold
-        return shdom.GridData(self.grid, data)    
-
+        return shdom.GridData(self.grid, data)
 
     def add_mie(self, mie):
         """
         Add a Mie scattering model at a given wavelength.
-        
+
         mie: shdom.MiePolydisperse or list of shdom.MiePolydisperse
             Using Mie model microphyical properties are transformed into optical properties (see get_optical_scatterer method)
         """
@@ -284,7 +277,6 @@ class MicrophysicalScatterer(Scatterer):
                     'Minimum medium effective radius [{:2.2f}] is smaller than the pre-computed table minimum variance [{:2.2f}]. ' \
                     'Recompute Mie table with smaller minimum radius.'.format(min_val, self.min_veff)              
 
-
     def load_grid(self, path):
         """
         A utility function to load a microphysical medium from file
@@ -319,8 +311,7 @@ class MicrophysicalScatterer(Scatterer):
         y_grid = np.linspace(0.0, (ny - 1)*dy, ny, dtype=np.float32)    
         grid = shdom.Grid(x=x_grid, y=y_grid, z=z_grid)
         return grid
-        
-        
+
     def save_to_csv(self, path, comment_line=''):
         """
         A utility function to save a microphysical medium.
@@ -353,7 +344,6 @@ class MicrophysicalScatterer(Scatterer):
         data = np.vstack((x.ravel(), y.ravel(), z.ravel(), self.lwc.data.ravel(), self.reff.data.ravel())).T
         np.savetxt(f, X=data, fmt='%d %d %d %.5f %.3f')        
         f.close()
-        
         
     def load_from_csv(self, path, veff=0.1):
         """ 
@@ -405,7 +395,6 @@ class MicrophysicalScatterer(Scatterer):
             reff=shdom.GridData(grid, reff_data).squeeze_dims(), 
             veff=shdom.GridData(grid, veff_data).squeeze_dims()
         )
-
     
     @property
     def lwc(self):
@@ -484,7 +473,7 @@ class MicrophysicalScatterer(Scatterer):
 class MultispectralScatterer(object):
     """
     A MultispectralScatterer class defined in terms of the optical quantities (extinction, albedo, phase) at several spectral bands.
-    
+
     Parameters
     ----------
     scatterer_list: list of shdom.OpticalScatterer
@@ -498,33 +487,31 @@ class MultispectralScatterer(object):
         if scatterer_list is not None:
             for scatterer in scatterer_list:
                 self.add_scatterer(scatterer)
-     
-          
+                
     def get_optical_scatterer(self, wavelength):
         """
         Get the optical scatterer at a given wavelength.
-        
+
         Parameters
         ----------
         wavelength: float
             Wavelength in microns.
-            
+
         Notes
-        ----- 
+        -----
         The input wavelength is rounded to three decimals.
         """
         return self.scatterer[float_round(wavelength)]    
 
-
     def resample(self, grid):
         """
         The resample method resamples the MutlispectralScatterer (extinction, albedo, phase) at all wavelengths.
-        
+
         Parameters
         ----------
         grid: shdom.Grid
             The new grid to which the data will be resampled
-            
+
         Returns
         -------
         scatterer: shdom.MultispectralScatterer
@@ -534,11 +521,10 @@ class MultispectralScatterer(object):
             self.scatterer[float_round(wavelength)] = self.scatterer[float_round(wavelength)].resample(grid)    
         return self
     
-    
     def add_scatterer(self, scatterer):
         """
         Add an optical scatterer to the list.
-        
+
         Parameters
         ----------
         scatterer: shdom.OpticalScatterer
@@ -551,7 +537,6 @@ class MultispectralScatterer(object):
         self._num_bands += 1
         self.scatterer[float_round(scatterer.wavelength)] = scatterer.resample(self.grid)
         self._wavelength.append(scatterer.wavelength)
-        
         
     @property
     def scatterer(self):
@@ -578,12 +563,12 @@ class MultispectralScatterer(object):
 class Medium(object):
     """
     The Medium object encapsulates an atmospheric optical medium with multiple Scatterers.
-    
+
     Parameters
     ----------
     grid: shdom.Grid, optional
         A grid for the Medium object. All scatterers will be resampled to this grid.
-        
+
     Notes
     -----
     The original SHDOM code combines particles at every grid point apriori, to define effective optical properties.
@@ -595,19 +580,17 @@ class Medium(object):
         self._wavelength = None
         self.set_grid(grid)
         
-        
     def set_grid(self, grid):
         """
-        Set the medium grid. 
-        
+        Set the medium grid.
+
         Parameters
         ----------
         grid: shdom.Grid
             A grid for the Medium object. All scatterers will be resampled to this grid.
         """
         self._grid = grid
-        
-    
+
     def add_scatterer(self, scatterer, name=None):
         """
         Add a Scatterer to the medium.
@@ -617,11 +600,11 @@ class Medium(object):
         scatterer: shdom.Scatterer
             A scattering particle distribution (e.g. MicrophysicalScatterer, OpticalScatterer)
         name: string, optional
-            A name for the scatterer that will be used to retrieve it (see get_scatterer method). 
+            A name for the scatterer that will be used to retrieve it (see get_scatterer method).
             If no name is specified the default name is scatterer# where # is the number in which it was input (i.e. scatterer1 for the first scatterer).
         """
         first_scatterer = True if self.num_scatterers==0 else False
-    
+
         if first_scatterer:
             self._wavelength = scatterer.wavelength
         else:       
@@ -629,25 +612,23 @@ class Medium(object):
         self._num_scatterers += 1
         name = 'scatterer{:d}'.format(self._num_scatterers) if name is None else name
         self.scatterers[name] = scatterer
-    
-    
+
     def get_scatterer(self, name):
         """
         Retrieve a Scatterer from the medium.
-    
+
         Parameters
         ----------
         name: string
             The name used for the scatterer on input (see add_scatterer method)
-            
+
         Returns
         -------
         scatterer: shdom.Scatterer
             The scatterer with the name matching the query
         """
         return self.scatterers[name]
-    
-    
+
     def save(self, path):
         """
         Save Medium to file.
@@ -660,7 +641,6 @@ class Medium(object):
         file = open(path,'wb')
         file.write(pickle.dumps(self.__dict__, -1))
         file.close()
-        
     
     def load(self, path):
         """
@@ -675,7 +655,6 @@ class Medium(object):
         data = file.read()
         file.close()
         self.__dict__ = pickle.loads(data)    
-
 
     @property
     def wavelength(self):
@@ -692,4 +671,3 @@ class Medium(object):
     @property
     def num_scatterers(self):
         return self._num_scatterers
-    
