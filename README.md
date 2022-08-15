@@ -1,8 +1,9 @@
 
 :warning::warning::warning::warning::warning:
 This project is built on the pyshdom project by Aviad Levis & Jesse Loveridge from
-:warning::warning::warning::warning::warning:
 https://github.com/aviadlevis/pyshdom
+:warning::warning::warning::warning::warning:
+
 ---
 
 # pyshdom
