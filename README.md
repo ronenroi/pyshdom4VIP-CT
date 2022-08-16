@@ -51,7 +51,8 @@ Change the corresponding config files in VIP-CT_scripts/configs.
 - dx,dy,dz: The imager perturbation magnitude.
 - n_formations: Number of imagers 
 
-
+For real-world AirMSPI results, generate cloud data using VIP-CT_scripts/generate_data_airmspi.py.
+(set the corresponding paths).
 &nbsp;
 
 ## Usage and Contact
