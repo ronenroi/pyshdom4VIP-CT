@@ -795,6 +795,6 @@ if __name__ == '__main__':
     cloud_indices_chunks = np.array_split(
             satellites_images_indices, num_workers)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        future_to_url = {executor.submit(main, cloud_indices_chunks[i]) for i in np.arange(num_workers)}
-    # main(satellites_images_indices) # for debug
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+    #     future_to_url = {executor.submit(main, cloud_indices_chunks[i]) for i in np.arange(num_workers)}
+    main(satellites_images_indices) # for debug
